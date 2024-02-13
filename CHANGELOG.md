@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.3
+
+* No changes
+
+## 2.1.2
+
+* Updated MapsIndoors SDK to 4.2.12
+
 ## 2.1.1
 
 * No changes
