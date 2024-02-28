@@ -1,8 +1,8 @@
 # Changelog
 
-## 2.1.3
+## 2.1.4
 
-* No changes
+* Fixed issue with not being able to always get a correct route involving one way paths.
 
 ## 2.1.2
 
