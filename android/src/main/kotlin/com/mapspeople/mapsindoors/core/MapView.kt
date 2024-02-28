@@ -116,6 +116,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 makeMPConfig(mConfig, floorSelectorInterface)?.let {
                     MapControl.create(it) { mc, e ->
                         if (e == null && mc != null) {
+                            MapsIndoors.getSolution()?.config?.isNewSelection = false
                             mDirectionsRenderer.setMapControl(mc)
                             mMapControl = mc
                             setupListeners()
