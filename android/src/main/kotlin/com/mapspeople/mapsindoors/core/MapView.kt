@@ -116,7 +116,6 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 makeMPConfig(mConfig, floorSelectorInterface)?.let {
                     MapControl.create(it) { mc, e ->
                         if (e == null && mc != null) {
-                            MapsIndoors.getSolution()?.config?.isNewSelection = false
                             mDirectionsRenderer.setMapControl(mc)
                             mMapControl = mc
                             setupListeners()
@@ -407,7 +406,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 success(gson.toJson(currentCameraPosition))
             }
             "setLabelOptions" -> {
-                val textSize = arg<Integer?>("textSize")
+                val textSize = arg<Int?>("textSize")
                 val color = arg<String?>("color")
                 val showHalo = arg<Boolean>("showHalo")
                 mMapControl?.apply {
@@ -417,6 +416,71 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     }
                 }
                 success()
+            }
+            "setHiddenFeatures" -> {
+                val features = arg<List<Int>?>("features")
+                val list = features?.map {
+                    when(it) {
+                        0 -> MPFeatureType.MODEL_2D
+                        1 -> MPFeatureType.WALLS_2D
+                        2 -> MPFeatureType.MODEL_2D
+                        3 -> MPFeatureType.WALLS_3D
+                        4 -> MPFeatureType.EXTRUSION_3D
+                        5 -> MPFeatureType.EXTRUDED_BUILDINGS
+                        else -> MPFeatureType.EXTRUDED_BUILDINGS
+                    }
+                }
+                mMapControl?.setHiddenFeatures(list)
+                success()
+            }
+            "getHiddenFeatures" -> {
+                val features = mMapControl?.getHiddenFeatures()
+                val list: List<Int>? = features?.map {
+                    when(it) {
+                        MPFeatureType.MODEL_2D -> 0
+                        MPFeatureType.WALLS_2D -> 1
+                        MPFeatureType.MODEL_2D -> 2
+                        MPFeatureType.WALLS_3D -> 3
+                        MPFeatureType.EXTRUSION_3D -> 4
+                        MPFeatureType.EXTRUDED_BUILDINGS -> 5
+                        else -> 5
+                    }
+                }
+                success(list)
+            }
+            "clearHighlight" -> {
+                mMapControl?.clearHighlight()
+                success()
+            }
+            "setHighlight" -> {
+                val locationIds = arg<List<String>>("locations") as List<String>?
+                val locations : MutableList<MPLocation> = mutableListOf()
+                for (id in locationIds!!){
+                    locations.add(MapsIndoors.getLocationById(id)!!)
+                }
+                val behavior = gson.fromJson(arg<String>("behavior"), MapBehavior::class.java)
+                if (locations != null && behavior != null) {
+                    mMapControl?.setHighlight(locations, behavior.toMPHighlightBehavior())
+                    success()
+                } else {
+                    error("-1", "parameters are null", call.method)
+                }
+            }
+            "setBuildingSelectionMode" -> {
+                val mode = arg<Int>("mode")
+                mMapControl?.buildingSelectionMode = MPSelectionMode.values()[mode!!]
+                success()
+            }
+            "getBuildingSelectionMode" -> {
+                success(mMapControl?.buildingSelectionMode?.ordinal)
+            }
+            "setFloorSelectionMode" -> {
+                val mode = arg<Int>("mode")
+                mMapControl?.floorSelectionMode = MPSelectionMode.values()[mode!!]
+                success()
+            }
+            "getFloorSelectionMode" -> {
+                success(mMapControl?.floorSelectionMode?.ordinal)
             }
             else -> {
                 result.notImplemented()

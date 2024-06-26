@@ -80,5 +80,11 @@ fun MapConfig.makeMPMapConfig(context: Context, map: GoogleMap, mapView: MapView
     floorSelector?.let {
         builder.setFloorSelector(it)
     }
+    buildingSelectionMode?.let {
+        builder.setBuildingSelectionMode(it)
+    }
+    floorSelectionMode?.let {
+        builder.setFloorSelectionMode(it)
+    }
     return builder.build()
 }

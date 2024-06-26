@@ -33,8 +33,16 @@ class DirectionsService(private val context: Context, binaryMessenger: BinaryMes
                 mpDirectionsService.addAvoidWayType(arg<String>("wayType") as String)
                 result.success("success")
             }
-            "clearWayType" -> {
-                mpDirectionsService.clearWayType()
+            "clearAvoidWayType" -> {
+                mpDirectionsService.clearAvoidWayType()
+                result.success("success")
+            }
+            "addExcludeWayType" -> {
+                mpDirectionsService.addExcludeWayType(arg<String>("wayType") as String)
+                result.success("success")
+            }
+            "clearExcludeWayType" -> {
+                mpDirectionsService.clearExcludeWayType()
                 result.success("success")
             }
             "setIsDeparture" -> {
@@ -47,8 +55,23 @@ class DirectionsService(private val context: Context, binaryMessenger: BinaryMes
                 }
                 val origin = gson.fromJson(arg<String>("origin"), MPPoint::class.java)
                 val destination = gson.fromJson(arg<String>("destination"), MPPoint::class.java)
+                val stopStrings = arg<List<String>?>("stops")
+                val optimize = arg<Boolean>("optimize") as Boolean
+                val stops = mutableListOf<MPPoint>()
+                if (stopStrings != null) {
+                    for (stop in stopStrings!!) {
+                        stops.add(gson.fromJson(stop, MPPoint::class.java))
+                    }
+                }
+
                 if (origin != null && destination != null) {
-                    mpDirectionsService.query(origin, destination)
+                    if (stops.isNotEmpty()) {
+                        mpDirectionsService.query(origin, destination, stops, optimize)
+                    } else {
+                        mpDirectionsService.query(origin, destination)
+                    }
+                } else {
+                    result.error("400", "origin and destination must not be null", null)
                 }
             }
             "setTravelMode" -> {

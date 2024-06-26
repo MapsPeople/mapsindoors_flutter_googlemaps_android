@@ -12,4 +12,6 @@ data class MapConfig(
     @SerializedName("showUserPosition") val showUserPosition: Boolean?,
     @SerializedName("tileFadeInEnabled") val tileFadeInEnabled: Boolean?,
     @SerializedName("useDefaultMapsIndoorsStyle") val useDefaultMapsIndoorsStyle: Boolean,
+    @SerializedName("buildingSelectionMode") val buildingSelectionMode: Int?,
+    @SerializedName("floorSelectionMode") val floorSelectionMode: Int?,
 )

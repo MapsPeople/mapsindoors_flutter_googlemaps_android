@@ -6,6 +6,8 @@ import com.google.gson.Gson
 import com.mapsindoors.core.*
 import com.mapspeople.mapsindoors.core.models.*
 import com.mapspeople.mapsindoors.*
+import com.mapsindoors.core.MPVenueStatus
+import com.mapsindoors.core.MPVenueStatus.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -13,6 +15,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.embedding.engine.plugins.lifecycle.FlutterLifecycleAdapter
+import com.google.gson.reflect.TypeToken
 
 /** MapsindoorsPlugin */
 open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
@@ -23,6 +26,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
     private lateinit var mapsIndoorsChannel: MethodChannel
     private lateinit var utilChannel: MethodChannel
     private lateinit var listenerChannel: MethodChannel
+    private lateinit var locationChannel: MethodChannel
     private lateinit var context: Application
     private lateinit var mDisplayRuleHandler: DisplayRuleHandler
     private var positionProvider: PositionProvider? = null
@@ -38,6 +42,9 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
         utilChannel.setMethodCallHandler(this::handleUtilChannel)
         listenerChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "MapsIndoorsListenerChannel")
         listenerChannel.setMethodCallHandler(this::handleListenerChannel)
+        locationChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "LocationMethodChannel")
+        locationChannel.setMethodCallHandler(this::handleLocationChannel)
+
         mDisplayRuleHandler = DisplayRuleHandler(flutterPluginBinding.binaryMessenger)
         mDirectionsService = DirectionsService(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger)
 
@@ -53,6 +60,31 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             }
         )
         context = flutterPluginBinding.applicationContext as Application
+    }
+
+    private fun handleLocationChannel(call: MethodCall, result: Result) { 
+        fun error(code: String = "-1", message: String? = "Argument was null", details: Any? = null) = result.error(code, message, details)
+
+        fun success(ret : Any? = "success") = result.success(ret)
+
+        fun <T> arg(name: String) : T? = call.argument<T>(name)
+
+        val method = call.method.drop(4)
+        when (method) {
+            "setLocationSettingsSelectable" -> {
+                val loc = MapsIndoors.getLocationById(arg<String>("id"))
+                val settings = gson.fromJson(arg<String>("settings"), LocationSettings::class.java)?.toMPLocationSettings()
+                if (loc != null && settings != null) {
+                    loc.locationSettings?.selectable = settings.selectable
+                    success()
+                } else {
+                    error()
+                }
+            }
+            else -> {
+                result.notImplemented()
+            }
+        }
     }
 
     private fun handleMapsIndoorsChannel(call: MethodCall, result: Result) {
@@ -72,6 +104,18 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                     return
                 }
                 MapsIndoors.load(context, key) { error ->
+                    view?.initialize()
+                    success(if (error == null) null else gson.toJson(MPError.fromMIError(error)))
+                }
+            }
+            "loadWithVenues" -> {
+                val key = arg<String>("key")
+                val venues : List<String> = gson.fromJson(arg<String>("venueIds"), object : TypeToken<List<String>?>() {}.type)
+                if (key == null) {
+                    error()
+                    return
+                }
+                MapsIndoors.load(context, key, venues) { error ->
                     view?.initialize()
                     success(if (error == null) null else gson.toJson(MPError.fromMIError(error)))
                 }
@@ -214,6 +258,19 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             "getDefaultVenue" -> {
                 success(gson.toJson(MapsIndoors.getVenues()?.getDefaultVenue()))
             }
+            "addVenuesToSync" -> {
+                val venues : List<String> = gson.fromJson(arg<String>("venueIds"), object : TypeToken<List<String>?>() {}.type)
+                MapsIndoors.addVenuesToSync(venues)
+                success()
+            }
+            "getSyncedVenues" -> {
+                success(MapsIndoors.getSyncedVenues())
+            }
+            "removeVenuesToSync" -> {
+                val venues : List<String> = gson.fromJson(arg<String>("venueIds"), object : TypeToken<List<String>?>() {}.type)
+                MapsIndoors.removeVenuesToSync(venues)
+                success()
+            }
             else -> {
                 result.notImplemented()
             }
@@ -353,6 +410,25 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 getSolutionConfig()?.settings3D?.setWallOpacity(opacity.toFloat())
                 success()
             }
+            "setLocationSettings" -> {
+                val settings = gson.fromJson(arg<String>("settings"), LocationSettings::class.java)?.toMPLocationSettings()
+                if (settings != null) {
+                    getSolutionConfig()?.locationSettings?.selectable = settings.selectable
+                    success()
+                } else {
+                    error()
+                }
+            }
+            "setTypeLocationSettingsSelectable" -> {
+                val name = arg<String>("name")
+                val settings = gson.fromJson(arg<String>("settings"), LocationSettings::class.java)?.toMPLocationSettings()
+                if (name != null && settings != null) {
+                    MapsIndoors.getSolution()?.types?.find { it.name == name }?.locationSettings?.selectable = settings.selectable
+                    success()
+                } else {
+                    error()
+                }
+            }
             else -> {
                 result.notImplemented()
             }
@@ -361,6 +437,8 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
 
     private var onMapsIndoorsReadyListener: OnMapsIndoorsReadyListener? = null
 
+    private var venueStatusListener: MPVenueStatusListener? = null
+
     private fun handleListenerChannel(call: MethodCall, result: Result) {
         val method = call.method.drop(4)
         when (method) {
@@ -368,7 +446,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 val setup = call.argument<Boolean>("addListener")
                 if (setup == true) {
                     onMapsIndoorsReadyListener = OnMapsIndoorsReadyListener {
-                        listenerChannel.invokeMethod("onMapsIndoorsReady", gson.toJson(gson.toJson(MPError.fromMIError(it))))
+                        listenerChannel.invokeMethod("onMapsIndoorsReady", gson.toJson(MPError.fromMIError(it)))
                     }
                     MapsIndoors.addOnMapsIndoorsReadyListener(onMapsIndoorsReadyListener!!)
                 } else {
@@ -379,9 +457,22 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 val update = gson.fromJson(call.argument<String>("position"), PositionResult::class.java)
                 positionProvider?.updatePosition(update)
             }
+            "onVenueStatusListener" -> {
+                val setup = call.argument<Boolean>("addListener")
+                if (setup == true) {
+                    venueStatusListener = MPVenueStatusListener { id, status ->
+                        listenerChannel.invokeMethod("onVenueStatusChanged", mapOf("venueId" to id, "status" to status.toStringValue()))
+                    }
+                    MapsIndoors.addOnVenueStatusChangedListener(venueStatusListener!!)
+                } else {
+                    MapsIndoors.removeOnVenueStatusChangedListener(venueStatusListener!!)
+                }
+            }
             else -> result.notImplemented()
         }
     }
+
+
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         mapsIndoorsChannel.setMethodCallHandler(null)
@@ -395,15 +486,25 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding)
     }
 
-      override fun onDetachedFromActivity() {
-    lifecycle = null
-  }
+    override fun onDetachedFromActivity() {
+        lifecycle = null
+    }
 
     override fun onDetachedFromActivityForConfigChanges() {
-    lifecycle = null
-  }
+        lifecycle = null
+    }
 
     interface LifecycleProvider {
         fun getLifecycle(): Lifecycle?
+    }
+
+    fun MPVenueStatus.toStringValue(): String {
+        return when (this) {
+            LOADING     -> "LOADING"
+            UNAVAILABLE -> "UNAVAILABLE"
+            LOADED      -> "LOADED"
+            FAILED      -> "FAILED"
+            NO_VENUE    -> "NO_VENUE"
+        }
     }
 }

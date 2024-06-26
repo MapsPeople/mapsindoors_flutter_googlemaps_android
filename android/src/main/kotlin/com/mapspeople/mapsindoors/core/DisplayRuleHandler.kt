@@ -2,6 +2,8 @@ package com.mapspeople.mapsindoors.core
 
 import com.google.gson.Gson
 import com.mapsindoors.core.*
+import com.mapspeople.mapsindoors.core.models.BadgePosition
+import com.mapspeople.mapsindoors.core.models.GraphicLabel
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -112,9 +114,9 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setLabelMaxWidth" -> {
-                    val maxWidth = call.argument<Int>("maxWidth")
+                    val maxWidth = call.argument<Number>("maxWidth")
                     if (maxWidth != null) {
-                        labelMaxWidth = maxWidth
+                        labelMaxWidth = maxWidth.toInt()
                         success()
                     } else {
                         error()
@@ -130,7 +132,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setLabelZoomFrom" -> {
-                    val zoomFrom = call.argument<Double>("zoomFrom")
+                    val zoomFrom = call.argument<Number>("zoomFrom")
                     if (zoomFrom != null) {
                         labelZoomFrom = zoomFrom.toFloat()
                         success()
@@ -139,7 +141,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setLabelZoomTo" -> {
-                    val zoomTo = call.argument<Double>("zoomTo")
+                    val zoomTo = call.argument<Number>("zoomTo")
                     if (zoomTo != null) {
                         labelZoomTo = zoomTo.toFloat()
                         success()
@@ -148,9 +150,9 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setModel2DBearing" -> {
-                    val bearing = call.argument<Double>("bearing")
+                    val bearing = call.argument<Number>("bearing")
                     if (bearing != null) {
-                        model2DBearing = bearing
+                        model2DBearing = bearing.toDouble()
                         success()
                     } else {
                         error()
@@ -166,9 +168,9 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setModel2DHeightMeters" -> {
-                    val height = call.argument<Double>("height")
+                    val height = call.argument<Number>("height")
                     if (height != null) {
-                        model2DHeightMeters = height
+                        model2DHeightMeters = height.toDouble()
                         success()
                     } else {
                         error()
@@ -184,16 +186,16 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setModel2DWidthMeters" -> {
-                    val width = call.argument<Double>("width")
+                    val width = call.argument<Number>("width")
                     if (width != null) {
-                        model2DWidthMeters = width
+                        model2DWidthMeters = width.toDouble()
                         success()
                     } else {
                         error()
                     }
                 }
                 "setModel2DZoomFrom" -> {
-                    val zoomFrom = call.argument<Double>("zoomFrom")
+                    val zoomFrom = call.argument<Number>("zoomFrom")
                     if (zoomFrom != null) {
                         model2DZoomFrom = zoomFrom.toFloat()
                         success()
@@ -202,7 +204,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setModel2DZoomTo" -> {
-                    val zoomTo = call.argument<Double>("zoomTo")
+                    val zoomTo = call.argument<Number>("zoomTo")
                     if (zoomTo != null) {
                         model2DZoomTo =  zoomTo.toFloat()
                         success()
@@ -220,7 +222,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setPolygonFillOpacity" -> {
-                    val opacity = call.argument<Double>("opacity")
+                    val opacity = call.argument<Number>("opacity")
                     if (opacity != null) {
                         polygonFillOpacity = opacity.toFloat()
                         success()
@@ -238,7 +240,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setPolygonStrokeOpacity" -> {
-                    val opacity = call.argument<Double>("opacity")
+                    val opacity = call.argument<Number>("opacity")
                     if (opacity != null) {
                         polygonStrokeOpacity = opacity.toFloat()
                         success()
@@ -247,7 +249,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setPolygonStrokeWidth" -> {
-                    val width = call.argument<Double>("width")
+                    val width = call.argument<Number>("width")
                     if (width != null) {
                         polygonStrokeWidth = width.toFloat()
                         success()
@@ -265,7 +267,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setPolygonZoomFrom" -> {
-                    val zoomFrom = call.argument<Double>("zoomFrom")
+                    val zoomFrom = call.argument<Number>("zoomFrom")
                     if (zoomFrom != null) {
                         polygonZoomFrom = zoomFrom.toFloat()
                         success()
@@ -274,7 +276,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setPolygonZoomTo" -> {
-                    val zoomTo = call.argument<Double>("zoomTo")
+                    val zoomTo = call.argument<Number>("zoomTo")
                     if (zoomTo != null) {
                         polygonZoomTo = zoomTo.toFloat()
                         success()
@@ -302,7 +304,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setExtrusionHeight" -> {
-                    val height = call.argument<Double>("height")
+                    val height = call.argument<Number>("height")
                     if (height != null) {
                         extrusionHeight = height.toFloat()
                         success()
@@ -320,7 +322,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setExtrusionZoomFrom" -> {
-                    val zoomFrom = call.argument<Double>("zoomFrom")
+                    val zoomFrom = call.argument<Number>("zoomFrom")
                     if (zoomFrom != null) {
                         extrusionZoomFrom = zoomFrom.toFloat()
                         success()
@@ -329,7 +331,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setExtrusionZoomTo" -> {
-                    val zoomTo = call.argument<Double>("zoomTo")
+                    val zoomTo = call.argument<Number>("zoomTo")
                     if (zoomTo != null) {
                         extrusionZoomTo = zoomTo.toFloat()
                         success()
@@ -347,7 +349,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setWallHeight" -> {
-                    val height = call.argument<Double>("height")
+                    val height = call.argument<Number>("height")
                     if (height != null) {
                         wallHeight = height.toFloat()
                         success()
@@ -365,7 +367,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setWallZoomFrom" -> {
-                    val zoomFrom = call.argument<Double>("zoomFrom")
+                    val zoomFrom = call.argument<Number>("zoomFrom")
                     if (zoomFrom != null) {
                         wallZoomFrom = zoomFrom.toFloat()
                         success()
@@ -374,7 +376,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setWallZoomTo" -> {
-                    val zoomTo = call.argument<Double>("zoomTo")
+                    val zoomTo = call.argument<Number>("zoomTo")
                     if (zoomTo != null) {
                         wallZoomTo = zoomTo.toFloat()
                         success()
@@ -383,7 +385,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setZoomFrom" -> {
-                    val zoomFromArg = call.argument<Double>("zoomFrom")
+                    val zoomFromArg = call.argument<Number>("zoomFrom")
                     if (zoomFromArg != null) {
                         zoomFrom = zoomFromArg.toFloat()
                         success()
@@ -392,9 +394,316 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     }
                 }
                 "setZoomTo" -> {
-                    val zoomToArg = call.argument<Double>("zoomTo")
+                    val zoomToArg = call.argument<Number>("zoomTo")
                     if (zoomToArg != null) {
                         zoomTo = zoomToArg.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "isModel3DVisible" -> success(isModel3DVisible)
+                "getModel3DZoomFrom" -> success(model3DZoomFrom)
+                "getModel3DZoomTo" -> success(model3DZoomTo)
+                "getModel3DModel" -> success(model3DModel)
+                "getModel3DRotationX" -> success(model3DRotationX)
+                "getModel3DRotationY" -> success(model3DRotationY)
+                "getModel3DRotationZ" -> success(model3DRotationZ)
+                "getModel3DScale" -> success(model3DScale)
+                "getBadgeFillColor" -> success(badgeFillColor)
+                "getBadgePosition" -> success(BadgePosition.fromMPBadgePosition(badgePosition!!).position)
+                "getBadgeRadius" -> success(badgeRadius)
+                "getBadgeScale" -> success(badgeScale)
+                "getBadgeStrokeColor" -> success(badgeStrokeColor)
+                "getBadgeStrokeWidth" -> success(badgeStrokeWidth)
+                "getBadgeZoomFrom" -> success(badgeZoomFrom)
+                "getBadgeZoomTo" -> success(badgeZoomTo)
+                "getExtrusionLightnessFactor" -> success(extrusionLightnessFactor)
+                "getIconPlacement" -> success(when (iconPlacement) {
+                    MPIconPlacement.ABOVE  -> "ABOVE"
+                    MPIconPlacement.BELOW  -> "BELOW"
+                    MPIconPlacement.LEFT   -> "LEFT"
+                    MPIconPlacement.CENTER -> "CENTER"
+                    MPIconPlacement.RIGHT  -> "RIGHT"
+                    else -> "ERROR"
+                })
+                "getLabelStyleBearing" -> success(labelStyleBearing)
+                "getLabelStyleHaloBlur" -> success(labelStyleHaloBlur)
+                "getLabelStyleHaloColor" -> success(labelStyleHaloColor)
+                "getLabelStyleHaloWidth" -> success(labelStyleHaloWidth)
+                "getLabelStyleTextColor" -> success(labelStyleTextColor)
+                "getLabelStyleTextOpacity" -> success(labelStyleTextOpacity)
+                "getLabelStyleTextSize" -> success(labelStyleTextSize)
+                "getLabelType" -> success(labelType?.typeValue)
+                "getPolygonLightnessFactor" -> success(polygonLightnessFactor)
+                "getWallLightnessFactor" -> success(wallLightnessFactor)
+                "isBadgeVisible" -> success(isBadgeVisible)
+                "setModel3DVisible" -> {
+                    val visibleArg = call.argument<Boolean>("visible")
+                    if (visibleArg != null) {
+                        isModel3DVisible = visibleArg
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeFillColor" -> {
+                    val color = call.argument<String>("color")
+                    if (color != null) {
+                        badgeFillColor = color
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setModel3DZoomFrom" -> {
+                    val zoomFromArg = call.argument<Double>("zoomFrom")
+                    if (zoomFromArg != null) {
+                        model3DZoomFrom = zoomFromArg.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgePosition" -> {
+                    val position = gson.fromJson(call.argument<String>("position"), BadgePosition::class.java)
+                    if (position != null) {
+                        badgePosition = position.toMPBadgePosition()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setModel3DZoomTo" -> {
+                    val zoomToArg = call.argument<Double>("zoomTo")
+                    if (zoomToArg != null) {
+                        model3DZoomTo = zoomToArg.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeRadius" -> {
+                    val radius = call.argument<Number>("radius")
+                    if (radius != null) {
+                        badgeRadius = radius.toInt()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setModel3DModel" -> {
+                    val modelArg = call.argument<String>("model")
+                    if (modelArg != null) {
+                        setModel3DModel(modelArg)
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeScale" -> {
+                    val scale = call.argument<Number>("scale")
+                    if (scale != null) {
+                        badgeScale = scale.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setModel3DRotationX" -> {
+                    val rotationArg = call.argument<Double>("rotation")
+                    if (rotationArg != null) {
+                        model3DRotationX = rotationArg.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeStrokeColor" -> {
+                    val color = call.argument<String>("color")
+                    if (color != null) {
+                        badgeStrokeColor = color
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setModel3DRotationY" -> {
+                    val rotationArg = call.argument<Double>("rotation")
+                    if (rotationArg != null) {
+                        model3DRotationY = rotationArg.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeStrokeWidth" -> {
+                    val width = call.argument<Number>("width")
+                    if (width != null) {
+                        badgeStrokeWidth = width.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setModel3DRotationZ" -> {
+                    val rotationArg = call.argument<Double>("rotation")
+                    if (rotationArg != null) {
+                        model3DRotationZ = rotationArg.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeVisible" -> {
+                    val visible = call.argument<Boolean>("visible")
+                    if (visible != null) {
+                        isBadgeVisible = visible
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setModel3DScale" -> {
+                    val scaleArg = call.argument<Double>("scale")
+                    if (scaleArg != null) {
+                        model3DScale = scaleArg.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeZoomFrom" -> {
+                    val zoomFrom = call.argument<Number>("zoomFrom")
+                    if (zoomFrom != null) {
+                        badgeZoomFrom = zoomFrom.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setBadgeZoomTo" -> {
+                    val zoomTo = call.argument<Number>("zoomTo")
+                    if (zoomTo != null) {
+                        badgeZoomTo = zoomTo.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setExtrusionLightnessFactor" -> {
+                    val factor = call.argument<Number>("factor")
+                    if (factor != null) {
+                        extrusionLightnessFactor = factor.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setIconPlacement" -> {
+                    val placement = gson.fromJson(call.argument<String>("placement"), MPIconPlacement::class.java)
+                    if (placement != null) {
+                        iconPlacement = placement
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelStyleBearing" -> {
+                    val bearing = call.argument<Number>("bearing")
+                    if (bearing != null) {
+                        labelStyleBearing = bearing.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelStyleHaloBlur" -> {
+                    val blur = call.argument<Number>("blur")
+                    if (blur != null) {
+                        labelStyleHaloBlur = blur.toInt()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelStyleHaloColor" -> {
+                    val color = call.argument<String>("color")
+                    if (color != null) {
+                        labelStyleHaloColor = color
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelStyleHaloWidth" -> {
+                    val width = call.argument<Number>("width")
+                    if (width != null) {
+                        labelStyleHaloWidth = width.toInt()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelStyleTextColor" -> {
+                    val color = call.argument<String>("color")
+                    if (color != null) {
+                        labelStyleTextColor = color
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelStyleTextOpacity" -> {
+                    val opacity = call.argument<Number>("opacity")
+                    if (opacity != null) {
+                        labelStyleTextOpacity = opacity.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelStyleTextSize" -> {
+                    val size = call.argument<Number>("size")
+                    if (size != null) {
+                        labelStyleTextSize = size.toInt()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setLabelType" -> {
+                    val type = gson.fromJson(call.argument<String>("type"), MPLabelType::class.java)
+                    if (type != null) {
+                        labelType = type
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setPolygonLightnessFactor" -> {
+                    val factor = call.argument<Number>("factor")
+                    if (factor != null) {
+                        polygonLightnessFactor = factor.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "setWallLightnessFactor" -> {
+                    val factor = call.argument<Number>("factor")
+                    if (factor != null) {
+                        wallLightnessFactor = factor.toFloat()
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "getLabelStyleGraphic" -> success(gson.toJson(labelStyleGraphic))
+                "setLabelStyleGraphic" -> {
+                    val graphic = gson.fromJson(call.argument<String>("graphic"), GraphicLabel::class.java)?.toMPLabelGraphic()
+                    if (graphic != null) {
+                        labelStyleGraphic = graphic
                         success()
                     } else {
                         error()

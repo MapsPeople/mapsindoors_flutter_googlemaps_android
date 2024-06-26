@@ -3,6 +3,7 @@ package com.mapspeople.mapsindoors.core.models
 import com.google.gson.annotations.SerializedName
 import com.mapsindoors.core.MPFilterBehavior
 import com.mapsindoors.core.MPSelectionBehavior
+import com.mapsindoors.core.MPHighlightBehavior
 
 /**
  * Used to deserialize MPSelectionBehavior and MPFilterBehavior from dart
@@ -31,6 +32,15 @@ data class MapBehavior(
         mMoveCamera?.let(builder::setMoveCamera)
         mAnimationDuration?.let(builder::setAnimationDuration)
         mShowInfoWindow?.let(builder::setShowInfoWindow)
+        mZoomToFit?.let(builder::setZoomToFit)
+        return builder.build()
+    }
+
+    fun toMPHighlightBehavior() : MPHighlightBehavior {
+        val builder = MPHighlightBehavior.Builder()
+        mAllowFloorChange?.let(builder::setAllowFloorChange)
+        mMoveCamera?.let(builder::setMoveCamera)
+        mAnimationDuration?.let(builder::setAnimationDuration)
         mZoomToFit?.let(builder::setZoomToFit)
         return builder.build()
     }
