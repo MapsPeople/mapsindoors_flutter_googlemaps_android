@@ -15,6 +15,7 @@ import com.google.gson.reflect.TypeToken
 
 import com.mapsindoors.core.MPFloorSelectorInterface
 import com.mapsindoors.core.MPPoint
+import com.mapsindoors.core.MPSelectionMode
 import com.mapsindoors.googlemaps.MPMapConfig
 import com.mapsindoors.googlemaps.converters.toLatLng
 
