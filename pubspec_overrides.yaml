@@ -1,3 +1,0 @@
-dependency_overrides:
-  mapsindoors_platform_interface:
-    path: ../../misdkfl-platform
