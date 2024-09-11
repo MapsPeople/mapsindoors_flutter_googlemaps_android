@@ -45,7 +45,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
         locationChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "LocationMethodChannel")
         locationChannel.setMethodCallHandler(this::handleLocationChannel)
 
-        mDisplayRuleHandler = DisplayRuleHandler(flutterPluginBinding.binaryMessenger)
+        mDisplayRuleHandler = DisplayRuleHandler(flutterPluginBinding.binaryMessenger) { view }
         mDirectionsService = DirectionsService(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger)
 
         flutterPluginBinding.platformViewRegistry.registerViewFactory(

@@ -9,7 +9,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 
-class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
+class DisplayRuleHandler(messenger: BinaryMessenger, private val getMapView: () -> MapView?) : MethodCallHandler {
     private val displayRuleChannel: MethodChannel
     private val gson = Gson()
     init {
@@ -713,6 +713,7 @@ class DisplayRuleHandler(messenger: BinaryMessenger) : MethodCallHandler {
                     result.notImplemented()
                 }
             }
+            getMapView()?.mapControl?.refresh()
             return@onMethodCall
         }
         success(null)

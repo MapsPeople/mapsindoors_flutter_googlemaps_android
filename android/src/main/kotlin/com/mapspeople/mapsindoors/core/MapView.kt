@@ -28,11 +28,11 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
     private val channel : MethodChannel = MethodChannel(binaryMessenger, "MapControlMethodChannel")
     private val listenerChannel : MethodChannel = MethodChannel(binaryMessenger, "MapControlListenerMethodChannel")
     private val floorSelectorChannel : MethodChannel = MethodChannel(binaryMessenger, "MapControlFloorSelectorChannel")
-    private var mMapControl : MapControl? = null
     private val gson = Gson()
     private val mDirectionsRenderer: DirectionsRenderer = DirectionsRenderer(context, binaryMessenger)
     private var mConfig: MapConfig? = null
     private var initializing: Boolean = false
+    var mapControl : MapControl? = null
 
     init {
         lifecycleProvider.getLifecycle()?.addObserver(this)
@@ -56,8 +56,8 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
     override fun dispose() {
         lifecycleProvider.getLifecycle()?.removeObserver(this)
         disposeMap()
-        mMapControl?.onDestroy()
-        mMapControl = null
+        mapControl?.onDestroy()
+        mapControl = null
         mConfig = null
     }
 
@@ -117,7 +117,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     MapControl.create(it) { mc, e ->
                         if (e == null && mc != null) {
                             mDirectionsRenderer.setMapControl(mc)
-                            mMapControl = mc
+                            mapControl = mc
                             setupListeners()
                             channel.invokeMethod("create", gson.toJson(e))
                         }
@@ -139,25 +139,25 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
 
     private fun setupListeners() {
         cameraListener?.let {
-            mMapControl?.addOnCameraEventListener(it)
+            mapControl?.addOnCameraEventListener(it)
         }
         floorUpdateListener?.let {
-            mMapControl?.addOnFloorUpdateListener(it)
+            mapControl?.addOnFloorUpdateListener(it)
         }
-        mMapControl?.setOnCurrentBuildingChangedListener(buildingFoundAtCameraTargetListener)
-        mMapControl?.setOnCurrentVenueChangedListener(venueFoundAtCameraTargetListener)
-        mMapControl?.setOnLocationSelectedListener(locationSelectedListener)
-        mMapControl?.setOnMapClickListener(mapClickListener)
-        mMapControl?.setOnMarkerClickListener(markerClickListener)
-        mMapControl?.setOnMarkerInfoWindowClickListener(markerInfoWindowClickListener)
+        mapControl?.setOnCurrentBuildingChangedListener(buildingFoundAtCameraTargetListener)
+        mapControl?.setOnCurrentVenueChangedListener(venueFoundAtCameraTargetListener)
+        mapControl?.setOnLocationSelectedListener(locationSelectedListener)
+        mapControl?.setOnMapClickListener(mapClickListener)
+        mapControl?.setOnMarkerClickListener(markerClickListener)
+        mapControl?.setOnMarkerInfoWindowClickListener(markerInfoWindowClickListener)
     }
 
     private fun setupFloorSelector(autoFloorChangeEnabled: Boolean?) {
         autoFloorChangeEnabled?.let {
             floorSelectorInterface.autoFloorChange  = it
         }
-        mMapControl?.floorSelector = floorSelectorInterface
-        mMapControl?.hideFloorSelector(false)
+        mapControl?.floorSelector = floorSelectorInterface
+        mapControl?.hideFloorSelector(false)
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -173,53 +173,53 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             "selectFloor" -> {
                 val floor : Int = arg<Int>("floorIndex") as Int
                 try {
-                    mMapControl?.selectFloor(floor)
+                    mapControl?.selectFloor(floor)
                     success()
                 } catch (e: Exception) {
                     error("-1", e.message, call.method)
                 }
             }
             "clearFilter" -> {
-                mMapControl?.clearFilter()
+                mapControl?.clearFilter()
                 success()
             }
             "deSelectLocation" -> {
-                mMapControl?.deSelectLocation()
+                mapControl?.deSelectLocation()
                 success()
             }
             "getCurrentBuilding" -> {
-                success(gson.toJson(mMapControl?.currentBuilding))
+                success(gson.toJson(mapControl?.currentBuilding))
             }
             "getCurrentBuildingFloor" -> {
-                success(gson.toJson(mMapControl?.currentBuildingFloor))
+                success(gson.toJson(mapControl?.currentBuildingFloor))
             }
             "getCurrentFloorIndex" -> {
-                success(mMapControl?.currentFloorIndex)
+                success(mapControl?.currentFloorIndex)
             }
             "setFloorSelector" -> {
                 setupFloorSelector(arg<Boolean>("isAutoFloorChangeEnabled"))
                 success()
             }
             "getCurrentMapsIndoorsZoom" -> {
-                success(mMapControl?.currentMapsIndoorsZoom)
+                success(mapControl?.currentMapsIndoorsZoom)
             }
             "getCurrentVenue" -> {
-                success(gson.toJson(mMapControl?.currentVenue))
+                success(gson.toJson(mapControl?.currentVenue))
             }
             "getMapStyle" -> {
-                success(gson.toJson(mMapControl?.mapStyle))
+                success(gson.toJson(mapControl?.mapStyle))
             }
             "getMapViewPaddingBottom" -> {
-                success(mMapControl?.mapViewPaddingBottom)
+                success(mapControl?.mapViewPaddingBottom)
             }
             "getMapViewPaddingEnd" -> {
-                success(mMapControl?.mapViewPaddingEnd)
+                success(mapControl?.mapViewPaddingEnd)
             }
             "getMapViewPaddingStart" -> {
-                success(mMapControl?.mapViewPaddingStart)
+                success(mapControl?.mapViewPaddingStart)
             }
             "getMapViewPaddingTop" -> {
-                success(mMapControl?.mapViewPaddingTop)
+                success(mapControl?.mapViewPaddingTop)
             }
             "goTo" -> {
                 val json: String? = arg<String>("entity")
@@ -251,24 +251,24 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     error("-1", e.message)
                     return
                 }
-                mMapControl?.goTo(entity)
+                mapControl?.goTo(entity)
                 success()
             }
             "hideFloorSelector" -> {
-                mMapControl?.hideFloorSelector(arg<Boolean>("hide") as Boolean)
+                mapControl?.hideFloorSelector(arg<Boolean>("hide") as Boolean)
                 success()
             }
             "isFloorSelectorHidden" -> {
-                success(mMapControl?.isFloorSelectorHidden)
+                success(mapControl?.isFloorSelectorHidden)
             }
             "isUserPositionShown" -> {
-                success(mMapControl?.isUserPositionShown)
+                success(mapControl?.isUserPositionShown)
             }
             "selectBuilding" -> {
                 val building = gson.fromJson(arg("building") as String?, MPBuilding::class.java)
                 val moveCamera = arg<Boolean>("moveCamera")
                 if (building != null && moveCamera != null) {
-                    mMapControl?.selectBuilding(building, moveCamera)
+                    mapControl?.selectBuilding(building, moveCamera)
                     success()
                 } else {
                     error("-1", "parameters are null", call.method)
@@ -278,7 +278,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 val location = MapsIndoors.getLocationById(arg<String>("location"))
                 val behavior = gson.fromJson(arg("behavior") as String?, MapBehavior::class.java)
                 if (behavior != null) {
-                    mMapControl?.selectLocation(location, behavior.toMPSelectionBehavior())
+                    mapControl?.selectLocation(location, behavior.toMPSelectionBehavior())
                     success()
                 } else {
                     error("-1", "behavior is null", call.method)
@@ -288,7 +288,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 val id = arg<String>("id")
                 val behavior = gson.fromJson(arg<String>("behavior"), MapBehavior::class.java)
                 if (id != null && behavior != null) {
-                    mMapControl?.selectLocation(id, behavior.toMPSelectionBehavior())
+                    mapControl?.selectLocation(id, behavior.toMPSelectionBehavior())
                     success("success")
                 } else {
                     error("-1", "parameters are null", call.method)
@@ -298,7 +298,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 val venue = gson.fromJson(arg("venue") as String?, MPVenue::class.java)
                 val moveCamera = arg<Boolean>("moveCamera")
                 if (venue != null && moveCamera != null) {
-                    mMapControl?.selectVenue(venue, moveCamera)
+                    mapControl?.selectVenue(venue, moveCamera)
                     success("success")
                 } else {
                     error("-1", "parameters are null", call.method)
@@ -308,7 +308,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 val filter = gson.fromJson(arg<String>("filter"), Filter::class.java)
                 val behavior = gson.fromJson(arg<String>("behavior"), MapBehavior::class.java)
                 if (filter != null && behavior != null) {
-                    mMapControl?.setFilter(filter.toMPFilter(), behavior.toMPFilterBehavior(), object : MPSuccessListener {
+                    mapControl?.setFilter(filter.toMPFilter(), behavior.toMPFilterBehavior(), object : MPSuccessListener {
                         override fun onSuccess() {
                             success()
                         }
@@ -328,7 +328,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 }
                 val behavior = gson.fromJson(arg<String>("behavior"), MapBehavior::class.java)
                 if (locations != null && behavior != null) {
-                    mMapControl?.setFilter(locations, behavior.toMPFilterBehavior())
+                    mapControl?.setFilter(locations, behavior.toMPFilterBehavior())
                     success()
                 } else {
                     error("-1", "parameters are null", call.method)
@@ -340,7 +340,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 val end = arg<Int>("end")
                 val bottom = arg<Int>("bottom")
                 if (start != null && top != null && end != null && bottom != null) {
-                    mMapControl?.setMapPadding(start, top, end, bottom)
+                    mapControl?.setMapPadding(start, top, end, bottom)
                     success()
                 } else {
                     error("-1", "Some arguements were null", call.method)
@@ -349,7 +349,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             "setMapStyle" -> {
                 val mapStyle = gson.fromJson(arg<String>("mapStyle"), MPMapStyle::class.java)
                 if (mapStyle != null) {
-                    mMapControl?.mapStyle = mapStyle
+                    mapControl?.mapStyle = mapStyle
                     success()
                 } else {
                     error("-1", "some arguments were null", call.method)
@@ -358,7 +358,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             "showInfoWindowOnClickedLocation" -> {
                 val should = arg<Boolean>("show")
                 if (should != null) {
-                    mMapControl?.showInfoWindowOnClickedLocation(should)
+                    mapControl?.showInfoWindowOnClickedLocation(should)
                     success()
                 } else {
                     error("-1", "some arguments were null", call.method)
@@ -367,7 +367,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             "showUserPosition" -> {
                 val should = arg<Boolean>("show")
                 if (should != null) {
-                    mMapControl?.showUserPosition(should)
+                    mapControl?.showUserPosition(should)
                     success()
                 } else {
                     error("-1", "some arguments were null", call.method)
@@ -380,16 +380,16 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     val listener = OnLiveLocationUpdateListener { 
                         listenerChannel.invokeMethod("onLiveLocationUpdate", mapOf("location" to it, "domainType" to domainType))
                     }
-                    mMapControl?.enableLiveData(domainType, listener)
+                    mapControl?.enableLiveData(domainType, listener)
                 } else {
-                    mMapControl?.enableLiveData(domainType)
+                    mapControl?.enableLiveData(domainType)
                 }
                 success()
             }
             "disableLiveData" -> {
                 val domainType = arg<String>("domainType")
                 if (domainType != null) {
-                    mMapControl?.disableLiveData(domainType)
+                    mapControl?.disableLiveData(domainType)
                 }
                 success()
             }
@@ -409,7 +409,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 val textSize = arg<Int?>("textSize")
                 val color = arg<String?>("color")
                 val showHalo = arg<Boolean>("showHalo")
-                mMapControl?.apply {
+                mapControl?.apply {
                     setMapLabelFont(Typeface.DEFAULT, color, showHalo!!)
                     if (textSize != null) {
                         setMapLabelTextSize(15)
@@ -430,11 +430,11 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                         else -> MPFeatureType.EXTRUDED_BUILDINGS
                     }
                 }
-                mMapControl?.setHiddenFeatures(list)
+                mapControl?.setHiddenFeatures(list)
                 success()
             }
             "getHiddenFeatures" -> {
-                val features = mMapControl?.getHiddenFeatures()
+                val features = mapControl?.getHiddenFeatures()
                 val list: List<Int>? = features?.map {
                     when(it) {
                         MPFeatureType.MODEL_2D -> 0
@@ -449,7 +449,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 success(list)
             }
             "clearHighlight" -> {
-                mMapControl?.clearHighlight()
+                mapControl?.clearHighlight()
                 success()
             }
             "setHighlight" -> {
@@ -460,7 +460,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 }
                 val behavior = gson.fromJson(arg<String>("behavior"), MapBehavior::class.java)
                 if (locations != null && behavior != null) {
-                    mMapControl?.setHighlight(locations, behavior.toMPHighlightBehavior())
+                    mapControl?.setHighlight(locations, behavior.toMPHighlightBehavior())
                     success()
                 } else {
                     error("-1", "parameters are null", call.method)
@@ -468,19 +468,33 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             }
             "setBuildingSelectionMode" -> {
                 val mode = arg<Int>("mode")
-                mMapControl?.buildingSelectionMode = MPSelectionMode.values()[mode!!]
+                mapControl?.buildingSelectionMode = MPSelectionMode.values()[mode!!]
                 success()
             }
             "getBuildingSelectionMode" -> {
-                success(mMapControl?.buildingSelectionMode?.ordinal)
+                success(mapControl?.buildingSelectionMode?.ordinal)
             }
             "setFloorSelectionMode" -> {
                 val mode = arg<Int>("mode")
-                mMapControl?.floorSelectionMode = MPSelectionMode.values()[mode!!]
+                mapControl?.floorSelectionMode = MPSelectionMode.values()[mode!!]
                 success()
             }
             "getFloorSelectionMode" -> {
-                success(mMapControl?.floorSelectionMode?.ordinal)
+                success(mapControl?.floorSelectionMode?.ordinal)
+            }
+            "refresh" -> {
+                mapControl?.refresh()
+                success()
+            }
+            "showCompassOnRotate" -> {
+                val should = arg<Boolean>("show")
+                if (should != null) {
+                    // TODO: Implement this
+                    // mMapControl?.showCompassOnRotate(should)
+                    success()
+                } else {
+                    error("-1", "some arguments were null", call.method)
+                }
             }
             else -> {
                 result.notImplemented()
@@ -504,11 +518,11 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     cameraListener = MPCameraEventListener {
                         listenerChannel.invokeMethod("onCameraEvent", it.ordinal)
                     }.also {
-                        mMapControl?.addOnCameraEventListener(it)
+                        mapControl?.addOnCameraEventListener(it)
                     }
                 } else {
                     cameraListener?.let {
-                        mMapControl?.removeOnCameraEventListener(it)
+                        mapControl?.removeOnCameraEventListener(it)
                     }
                     cameraListener = null
                 }
@@ -518,11 +532,11 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     floorUpdateListener = OnFloorUpdateListener { _, floor ->
                         listenerChannel.invokeMethod("onFloorUpdate", floor)
                     }.also {
-                        mMapControl?.addOnFloorUpdateListener(it)
+                        mapControl?.addOnFloorUpdateListener(it)
                     }
                 } else {
                     floorUpdateListener?.let {
-                        mMapControl?.removeOnFloorUpdateListener(it)
+                        mapControl?.removeOnFloorUpdateListener(it)
                     }
                     floorUpdateListener = null
                 }
@@ -532,10 +546,10 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     buildingFoundAtCameraTargetListener = OnBuildingFoundAtCameraTargetListener {
                         listenerChannel.invokeMethod("onBuildingFoundAtCameraTarget", gson.toJson(it))
                     }.also {
-                        mMapControl?.setOnCurrentBuildingChangedListener(it)
+                        mapControl?.setOnCurrentBuildingChangedListener(it)
                     }
                 } else {    
-                    mMapControl?.setOnCurrentBuildingChangedListener(null)
+                    mapControl?.setOnCurrentBuildingChangedListener(null)
                     buildingFoundAtCameraTargetListener = null
                 }
             }
@@ -544,10 +558,10 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     venueFoundAtCameraTargetListener = OnVenueFoundAtCameraTargetListener {
                         listenerChannel.invokeMethod("onVenueFoundAtCameraTarget", gson.toJson(it))
                     }.also {
-                        mMapControl?.setOnCurrentVenueChangedListener(it)
+                        mapControl?.setOnCurrentVenueChangedListener(it)
                     }
                 } else {
-                    mMapControl?.setOnCurrentVenueChangedListener(null)
+                    mapControl?.setOnCurrentVenueChangedListener(null)
                     venueFoundAtCameraTargetListener = null
                 }
             }
@@ -557,10 +571,10 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                         listenerChannel.invokeMethod("onLocationSelected", gson.toJson(it))
                         return@OnLocationSelectedListener consumeEvent == true
                     }.also {
-                        mMapControl?.setOnLocationSelectedListener(it)
+                        mapControl?.setOnLocationSelectedListener(it)
                     }
                 } else {
-                    mMapControl?.setOnLocationSelectedListener(null)
+                    mapControl?.setOnLocationSelectedListener(null)
                     locationSelectedListener = null
                 }
             }
@@ -574,10 +588,10 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                         }
                         return@MPOnMapClickListener consumeEvent == true
                     }.also {
-                        mMapControl?.setOnMapClickListener(it)
+                        mapControl?.setOnMapClickListener(it)
                     }
                 } else {
-                    mMapControl?.setOnMapClickListener(null)
+                    mapControl?.setOnMapClickListener(null)
                     mapClickListener = null
                 }
             }
@@ -587,10 +601,10 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                         listenerChannel.invokeMethod("onMarkerClick", it?.id)
                         return@MPOnMarkerClickListener consumeEvent == true
                     }.also {
-                        mMapControl?.setOnMarkerClickListener(it)
+                        mapControl?.setOnMarkerClickListener(it)
                     }
                 } else {
-                    mMapControl?.setOnMarkerClickListener(null)
+                    mapControl?.setOnMarkerClickListener(null)
                     markerClickListener = null
                 }
             }
@@ -599,10 +613,10 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     markerInfoWindowClickListener = MPOnInfoWindowClickListener {
                         listenerChannel.invokeMethod("onInfoWindowClick", it?.id)
                     }.also {
-                        mMapControl?.setOnMarkerInfoWindowClickListener(it)
+                        mapControl?.setOnMarkerInfoWindowClickListener(it)
                     }
                 } else {
-                    mMapControl?.setOnMarkerInfoWindowClickListener(null)
+                    mapControl?.setOnMarkerInfoWindowClickListener(null)
                     markerInfoWindowClickListener = null
                 }
             }
