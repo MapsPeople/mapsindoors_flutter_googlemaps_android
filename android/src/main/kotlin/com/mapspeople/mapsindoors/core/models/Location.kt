@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 import com.mapsindoors.core.MapsIndoors
 import com.mapsindoors.core.MPLocation
 
-data class Location(@SerializedName("locationId") private val id : String) {
+data class Location(@SerializedName("id") private val id : String) {
     fun toMPLocation() : MPLocation? {
         return MapsIndoors.getLocationById(id)
     }
