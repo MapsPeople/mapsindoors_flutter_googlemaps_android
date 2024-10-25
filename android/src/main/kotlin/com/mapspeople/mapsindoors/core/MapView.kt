@@ -112,6 +112,10 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
     public fun initialize() {
         if (!initializing) {
             initializing = true;
+            mapControl?.let {
+                it.onDestroy()
+                mapControl = null
+            }
             CoroutineScope(Dispatchers.Main).launch {
                 makeMPConfig(mConfig, floorSelectorInterface)?.let {
                     MapControl.create(it) { mc, e ->

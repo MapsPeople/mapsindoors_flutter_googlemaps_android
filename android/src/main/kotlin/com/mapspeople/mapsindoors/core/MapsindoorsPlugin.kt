@@ -391,7 +391,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 }
             }
             "setCollisionHandling" -> {
-                val collisionHandling = MPCollisionHandling.fromStringValue(arg<String>("handling")!!)
+                val collisionHandling = MPCollisionHandling.fromValue(arg<Int>("handling")!!)
                 getSolutionConfig()?.setCollisionHandling(collisionHandling)
                 success()
             }
