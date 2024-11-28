@@ -24,7 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: HashMap<*,*>?, private val lifecycleProvider: MapsindoorsPlugin.LifecycleProvider) : PlatformMapView(context), PlatformView, MethodCallHandler, DefaultLifecycleObserver {
+class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: HashMap<*,*>?, private val lifecycleProvider: MapsindoorsPlugin.LifecycleProvider) : PlatformMapView(context, args), PlatformView, MethodCallHandler, DefaultLifecycleObserver {
     private val channel : MethodChannel = MethodChannel(binaryMessenger, "MapControlMethodChannel")
     private val listenerChannel : MethodChannel = MethodChannel(binaryMessenger, "MapControlListenerMethodChannel")
     private val floorSelectorChannel : MethodChannel = MethodChannel(binaryMessenger, "MapControlFloorSelectorChannel")

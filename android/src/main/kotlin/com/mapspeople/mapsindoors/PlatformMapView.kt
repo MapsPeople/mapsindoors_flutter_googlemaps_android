@@ -7,12 +7,14 @@ import com.mapsindoors.core.MPFloorSelectorInterface
 import com.mapsindoors.googlemaps.MPMapConfig
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.CameraUpdate as GMCameraUpdate
 import com.google.android.gms.maps.GoogleMap.CancelableCallback
 import com.google.android.gms.maps.MapView
+import com.google.gson.Gson
 import android.view.View
 
-abstract class PlatformMapView(private val context: Context) : PlatformMapViewInterface, OnMapReadyCallback {
+abstract class PlatformMapView(private val context: Context, private val args: HashMap<*,*>?) : PlatformMapViewInterface, OnMapReadyCallback {
     private val mMap: MapView = MapView(context)
     private var mGoogleMap: GoogleMap? = null
 
@@ -58,6 +60,10 @@ abstract class PlatformMapView(private val context: Context) : PlatformMapViewIn
     override fun onMapReady(p0: GoogleMap) {
         mGoogleMap = p0
         mMap.onStart()
+        val position = Gson().fromJson(args?.get("initialCameraPosition") as? String, CameraPosition::class.java)?.toGMCameraPosition()
+        if (position != null) {
+            p0.moveCamera(CameraUpdateFactory.newCameraPosition(position))
+        }
         whenMapReady()
     }
 }
