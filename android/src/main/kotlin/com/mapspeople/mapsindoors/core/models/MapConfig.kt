@@ -14,4 +14,6 @@ data class MapConfig(
     @SerializedName("useDefaultMapsIndoorsStyle") val useDefaultMapsIndoorsStyle: Boolean,
     @SerializedName("buildingSelectionMode") val buildingSelectionMode: Int?,
     @SerializedName("floorSelectionMode") val floorSelectionMode: Int?,
+    @SerializedName("mapsindoorsTransitionLevel") val mapsindoorsTransitionLevel: Double?,
+    @SerializedName("mapStyleUri") val mapStyleUri: String?,
 )
