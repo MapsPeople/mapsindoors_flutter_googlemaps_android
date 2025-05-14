@@ -472,8 +472,13 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             }
             "setBuildingSelectionMode" -> {
                 val mode = arg<Int>("mode")
-                mapControl?.buildingSelectionMode = MPSelectionMode.values()[mode!!]
-                success()
+                if (mode != null) {
+                    mapControl?.buildingSelectionMode = MPSelectionMode.values()[mode!!]
+                    success()
+                } else {
+                    error("-1", "some arguments were null", call.method)
+                }
+
             }
             "getBuildingSelectionMode" -> {
                 success(mapControl?.buildingSelectionMode?.ordinal)
@@ -493,8 +498,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             "showCompassOnRotate" -> {
                 val should = arg<Boolean>("show")
                 if (should != null) {
-                    // TODO: Implement this
-                    // mMapControl?.showCompassOnRotate(should)
+                    showCompass(should)
                     success()
                 } else {
                     error("-1", "some arguments were null", call.method)

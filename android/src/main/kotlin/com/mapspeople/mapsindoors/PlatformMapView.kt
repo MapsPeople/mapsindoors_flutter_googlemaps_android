@@ -40,6 +40,10 @@ abstract class PlatformMapView(private val context: Context, private val args: H
         return mGoogleMap?.cameraPosition?.toCameraPosition()
     }
 
+    override fun showCompass(show: Boolean) {
+        mGoogleMap?.uiSettings?.isCompassEnabled = show
+    }
+
     override fun updateCamera(move: Boolean, update: CameraUpdate, duration: Int?, success: () -> Unit) {
         val cameraUpdate = update.toGMCameraUpdate()
         if (move) {
@@ -60,10 +64,12 @@ abstract class PlatformMapView(private val context: Context, private val args: H
     override fun onMapReady(p0: GoogleMap) {
         mGoogleMap = p0
         mMap.onStart()
-        val position = Gson().fromJson(args?.get("initialCameraPosition") as? String, CameraPosition::class.java)?.toGMCameraPosition()
-        if (position != null) {
-            p0.moveCamera(CameraUpdateFactory.newCameraPosition(position))
+        mGoogleMap?.setOnMapLoadedCallback {
+            val position = Gson().fromJson(args?.get("initialCameraPosition") as? String, CameraPosition::class.java)?.toGMCameraPosition()
+            if (position != null) {
+                p0.moveCamera(CameraUpdateFactory.newCameraPosition(position))
+            }
+            whenMapReady()
         }
-        whenMapReady()
     }
 }

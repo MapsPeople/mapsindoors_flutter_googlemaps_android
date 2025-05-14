@@ -434,6 +434,15 @@ class DisplayRuleHandler(messenger: BinaryMessenger, private val getMapView: () 
                 "getLabelStyleTextColor" -> success(labelStyleTextColor)
                 "getLabelStyleTextOpacity" -> success(labelStyleTextOpacity)
                 "getLabelStyleTextSize" -> success(labelStyleTextSize)
+                "getLabelStylePosition" -> success(
+                    when (labelStylePosition) {
+                        MPLabelPosition.LEFT   -> 0
+                        MPLabelPosition.TOP    -> 1
+                        MPLabelPosition.BOTTOM -> 2
+                        MPLabelPosition.RIGHT  -> 3
+                        else -> null
+                    }
+                )
                 "getLabelType" -> success(labelType?.typeValue)
                 "getPolygonLightnessFactor" -> success(polygonLightnessFactor)
                 "getWallLightnessFactor" -> success(wallLightnessFactor)
@@ -672,6 +681,22 @@ class DisplayRuleHandler(messenger: BinaryMessenger, private val getMapView: () 
                         error()
                     }
                 }
+                "setLabelStylePosition" -> {
+                    val position = when (call.argument<Number>("position")) {
+                        0 -> MPLabelPosition.LEFT
+                        1 -> MPLabelPosition.TOP
+                        2 -> MPLabelPosition.BOTTOM
+                        3 -> MPLabelPosition.RIGHT
+                        else -> null
+                    }
+
+                    if (position != null) {
+                        labelStylePosition = position
+                        success()
+                    } else {
+                        error()
+                    }
+                }
                 "setLabelType" -> {
                     val type = gson.fromJson(call.argument<String>("type"), MPLabelType::class.java)
                     if (type != null) {
@@ -704,6 +729,16 @@ class DisplayRuleHandler(messenger: BinaryMessenger, private val getMapView: () 
                     val graphic = gson.fromJson(call.argument<String>("graphic"), GraphicLabel::class.java)?.toMPLabelGraphic()
                     if (graphic != null) {
                         labelStyleGraphic = graphic
+                        success()
+                    } else {
+                        error()
+                    }
+                }
+                "getLabelStylePosition" -> success(labelStylePosition?.ordinal)
+                "setLabelStylePosition" -> {
+                    val position = call.argument<Number>("position")
+                    if (position != null) {
+                        labelStylePosition = MPLabelPosition.values()[position.toInt()]
                         success()
                     } else {
                         error()

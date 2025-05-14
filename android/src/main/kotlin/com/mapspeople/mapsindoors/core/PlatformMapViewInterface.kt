@@ -12,4 +12,5 @@ interface PlatformMapViewInterface {
     fun makeMPConfig(config: MapConfig?, floorSelectorInterface: MPFloorSelectorInterface) : MPIMapConfig?
     fun updateCamera(move: Boolean, update: CameraUpdate, duration: Int?, success: () -> Unit)
     fun whenMapReady()
+    fun showCompass(show: Boolean)
 }
