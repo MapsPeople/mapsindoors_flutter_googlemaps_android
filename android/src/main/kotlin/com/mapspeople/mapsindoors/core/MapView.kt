@@ -427,7 +427,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     when(it) {
                         0 -> MPFeatureType.MODEL_2D
                         1 -> MPFeatureType.WALLS_2D
-                        2 -> MPFeatureType.MODEL_2D
+                        2 -> MPFeatureType.MODEL_3D
                         3 -> MPFeatureType.WALLS_3D
                         4 -> MPFeatureType.EXTRUSION_3D
                         5 -> MPFeatureType.EXTRUDED_BUILDINGS
@@ -443,7 +443,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     when(it) {
                         MPFeatureType.MODEL_2D -> 0
                         MPFeatureType.WALLS_2D -> 1
-                        MPFeatureType.MODEL_2D -> 2
+                        MPFeatureType.MODEL_3D -> 2
                         MPFeatureType.WALLS_3D -> 3
                         MPFeatureType.EXTRUSION_3D -> 4
                         MPFeatureType.EXTRUDED_BUILDINGS -> 5
