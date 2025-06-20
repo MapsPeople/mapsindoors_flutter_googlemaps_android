@@ -401,8 +401,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 val update = gson.fromJson<CameraUpdate>(arg<String>("update"), CameraUpdate::class.java)
                 val duration : Int? = arg<Int>("duration")
 
-
-                updateCamera(call.method == "moveCamera", update, duration) {
+                updateCamera(call.method.contains("moveCamera"), update, duration) {
                     success()
                 }
             }
