@@ -117,11 +117,27 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 mapControl = null
             }
             CoroutineScope(Dispatchers.Main).launch {
+                val hiddenFeatures = (args?.get("hiddenFeatures") as List<*>?)?.let { list ->
+                    list.map { features ->
+                        when (features) {
+                            0    -> MPFeatureType.MODEL_2D
+                            1    -> MPFeatureType.WALLS_2D
+                            2    -> MPFeatureType.MODEL_3D
+                            3    -> MPFeatureType.WALLS_3D
+                            4    -> MPFeatureType.EXTRUSION_3D
+                            5    -> MPFeatureType.EXTRUDED_BUILDINGS
+                            else -> MPFeatureType.EXTRUDED_BUILDINGS
+                        }
+                    }
+                }
                 makeMPConfig(mConfig, floorSelectorInterface)?.let {
                     MapControl.create(it) { mc, e ->
                         if (e == null && mc != null) {
                             mDirectionsRenderer.setMapControl(mc)
                             mapControl = mc
+                            hiddenFeatures?.let { features ->
+                                mapControl?.setHiddenFeatures(features)
+                            }
                             setupListeners()
                             channel.invokeMethod("create", gson.toJson(e))
                         }
