@@ -1,6 +1,6 @@
 name: mapsindoors_googlemaps_android
 description: Android implementation of the mapsindoors plugin using the Google Maps platform
-version: 4.2.4
+version: 4.2.5
 repository: https://github.com/MapsPeople/mapsindoors_flutter_googlemaps_android
 homepage: https://www.mapsindoors.com/
 
@@ -20,7 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_plugin_android_lifecycle: ^2.0.15
-  mapsindoors_platform_interface: ^4.2.4
+  mapsindoors_platform_interface: ^4.2.5
 
 dev_dependencies:
   flutter_test:
