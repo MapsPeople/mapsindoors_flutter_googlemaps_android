@@ -271,6 +271,11 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 MapsIndoors.removeVenuesToSync(venues)
                 success()
             }
+            "enableDebugLogging" -> {
+                val enable = arg<Boolean>("enable") ?: false
+                MPDebugLog.enableDeveloperMode(enable, "MI_Flutter_")
+                success()
+            }
             else -> {
                 result.notImplemented()
             }
