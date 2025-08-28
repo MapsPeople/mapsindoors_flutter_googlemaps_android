@@ -401,18 +401,18 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 success()
             }
             "setEnableClustering" -> {
-                val enable = arg<String>("enable")!!.toBoolean()
+                val enable = arg<Boolean>("enable") ?: false
                 getSolutionConfig()?.setEnableClustering(enable)
                 success()
             }
             "setExtrusionOpacity" -> {
-                val opacity = arg<String>("opacity")!!.toDouble()
-                getSolutionConfig()?.settings3D?.setExtrusionOpacity(opacity.toFloat())
+                val opacity = arg<Number>("opacity")?.toFloat() ?: 0.0f
+                getSolutionConfig()?.settings3D?.setExtrusionOpacity(opacity)
                 success()
             }
             "setWallOpacity" -> {
-                val opacity = arg<String>("opacity")!!.toDouble()
-                getSolutionConfig()?.settings3D?.setWallOpacity(opacity.toFloat())
+                val opacity = arg<Number>("opacity")?.toFloat() ?: 0.0f
+                getSolutionConfig()?.settings3D?.setWallOpacity(opacity)
                 success()
             }
             "setLocationSettings" -> {
@@ -433,6 +433,11 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 } else {
                     error()
                 }
+            }
+            "setAutomatedZoomLimit" -> {
+                val limit = arg<Number>("limit")?.toDouble()
+                getSolutionConfig()?.setAutomatedZoomLimit(limit)
+                success()
             }
             else -> {
                 result.notImplemented()

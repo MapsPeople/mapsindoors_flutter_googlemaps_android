@@ -271,7 +271,12 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     error("-1", e.message)
                     return
                 }
-                mapControl?.goTo(entity)
+                val maxZoom = arg<Double>("maxZoom")
+                if (maxZoom != null) {
+                    mapControl?.goTo(entity, maxZoom)
+                } else {
+                    mapControl?.goTo(entity)
+                }
                 success()
             }
             "hideFloorSelector" -> {
