@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.mapsindoors.core.*
 import com.mapspeople.mapsindoors.core.models.*
 import com.mapspeople.mapsindoors.*
+import com.mapsindoors.core.Logger
 import com.mapsindoors.core.MPVenueStatus
 import com.mapsindoors.core.MPVenueStatus.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -59,6 +60,9 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 view = it
             }
         )
+
+        Logger.setCustomComponent("Flutter/android SDK", "4.5.1")
+
         context = flutterPluginBinding.applicationContext as Application
     }
 
