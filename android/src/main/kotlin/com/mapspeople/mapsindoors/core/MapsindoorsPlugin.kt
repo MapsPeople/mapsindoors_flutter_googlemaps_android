@@ -61,7 +61,25 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             }
         )
 
-        Logger.setCustomComponent("Flutter/android SDK", "4.5.1")
+        mapsIndoorsChannel.invokeMethod("getFlutterVersion", null, object: MethodChannel.Result {
+            override fun success(version: Any?) {
+                if (version != null && version is String) {
+                    Logger.setCustomComponent("Flutter/android SDK", version)
+                } else {
+                    Logger.setCustomComponent("Flutter/android SDK", "unknown")
+                    MPDebugLog.LogW("Flutter", "Could not get Flutter version: version is null or not a string")
+                }
+            }
+
+            override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+                MPDebugLog.LogW("Flutter", "Could not get Flutter version: $errorMessage")
+            }
+
+            override fun notImplemented() {
+                MPDebugLog.LogW("Flutter", "Could not get Flutter version: not implemented")
+            }
+
+        })  
 
         context = flutterPluginBinding.applicationContext as Application
     }
