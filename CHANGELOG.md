@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.7.0
+See the [main](https://pub.dev/packages/mapsindoors_googlemaps/changelog#470) package for the changelog.
+
+## 4.6.4
+Fixed dependency issue.
+
 ## 4.6.3
 See the [main](https://pub.dev/packages/mapsindoors_googlemaps/changelog#463) package for the changelog.
 

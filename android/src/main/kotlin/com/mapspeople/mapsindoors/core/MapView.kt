@@ -136,7 +136,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                             mDirectionsRenderer.setMapControl(mc)
                             mapControl = mc
                             hiddenFeatures?.let { features ->
-                                mapControl?.setHiddenFeatures(features)
+                                mapControl?.hiddenFeatures = features
                             }
                             setupListeners()
                             channel.invokeMethod("create", gson.toJson(e))
@@ -454,11 +454,11 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                         else -> MPFeatureType.EXTRUDED_BUILDINGS
                     }
                 }
-                mapControl?.setHiddenFeatures(list)
+                mapControl?.hiddenFeatures = list
                 success()
             }
             "getHiddenFeatures" -> {
-                val features = mapControl?.getHiddenFeatures()
+                val features = mapControl?.hiddenFeatures
                 val list: List<Int>? = features?.map {
                     when(it) {
                         MPFeatureType.MODEL_2D -> 0

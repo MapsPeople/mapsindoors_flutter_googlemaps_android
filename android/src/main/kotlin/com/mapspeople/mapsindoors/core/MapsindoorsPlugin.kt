@@ -171,7 +171,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 success(MapsIndoors.getAvailableLanguages())
             }
             "getBuildings" -> {
-                val buildings = MapsIndoors.getBuildings()?.buildings
+                val buildings = MapsIndoors.getBuildings()?.getBuildings()
                 success(if (buildings != null) gson.toJson(buildings) else null)
             }
             "getCategories" -> {
