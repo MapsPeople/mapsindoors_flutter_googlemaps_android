@@ -2,6 +2,8 @@ package com.mapspeople.mapsindoors.core
 
 import android.graphics.Typeface
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -54,6 +56,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
     }
 
     override fun dispose() {
+        mainHandler.removeCallbacksAndMessages(null)
         lifecycleProvider.getLifecycle()?.removeObserver(this)
         disposeMap()
         mapControl?.onDestroy()
@@ -66,6 +69,11 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             floorSelectorInterface.autoFloorChange = it as Boolean
         }
         initialize()
+    }
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private fun runOnMain(block: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) block() else mainHandler.post(block)
     }
 
     private val floorSelectorInterface = object : MPFloorSelectorInterface {
@@ -81,23 +89,23 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
 
         override fun setList(p0: MutableList<MPFloor>?) {
             val ret = if (p0 == null) null else gson.toJson(p0)
-            floorSelectorChannel.invokeMethod("setList", ret)
+            runOnMain { floorSelectorChannel.invokeMethod("setList", ret) }
         }
 
         override fun show(p0: Boolean, p1: Boolean) {
-            floorSelectorChannel.invokeMethod("show", mapOf("show" to p0, "animate" to p1))
+            runOnMain { floorSelectorChannel.invokeMethod("show", mapOf("show" to p0, "animate" to p1)) }
         }
 
         override fun setSelectedFloor(p0: MPFloor) {
-            floorSelectorChannel.invokeMethod("setSelectedFloor", gson.toJson(p0))
+            runOnMain { floorSelectorChannel.invokeMethod("setSelectedFloor", gson.toJson(p0)) }
         }
 
         override fun setSelectedFloorByZIndex(p0: Int) {
-            floorSelectorChannel.invokeMethod("setSelectedFloorByZIndex", p0)
+            runOnMain { floorSelectorChannel.invokeMethod("setSelectedFloorByZIndex", p0) }
         }
 
         override fun zoomLevelChanged(p0: Float) {
-            floorSelectorChannel.invokeMethod("zoomLevelChanged", p0.toDouble())
+            runOnMain { floorSelectorChannel.invokeMethod("zoomLevelChanged", p0.toDouble()) }
         }
 
         override fun isAutoFloorChangeEnabled(): Boolean {
@@ -105,18 +113,18 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
         }
 
         override fun setUserPositionFloor(p0: Int) {
-            floorSelectorChannel.invokeMethod("setUserPositionFloor", p0)
+            runOnMain { floorSelectorChannel.invokeMethod("setUserPositionFloor", p0) }
         }
     }
  
     public fun initialize() {
         if (!initializing) {
             initializing = true;
-            mapControl?.let {
-                it.onDestroy()
-                mapControl = null
-            }
             CoroutineScope(Dispatchers.Main).launch {
+                mapControl?.let {
+                    it.onDestroy()
+                    mapControl = null
+                }
                 val hiddenFeatures = (args?.get("hiddenFeatures") as List<*>?)?.let { list ->
                     list.map { features ->
                         when (features) {

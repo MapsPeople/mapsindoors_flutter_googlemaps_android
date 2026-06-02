@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.7.1
+See the [main](https://pub.dev/packages/mapsindoors_googlemaps/changelog#471) package for the changelog.
+
 ## 4.7.0
 See the [main](https://pub.dev/packages/mapsindoors_googlemaps/changelog#470) package for the changelog.
 
