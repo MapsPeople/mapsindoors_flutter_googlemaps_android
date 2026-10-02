@@ -84,6 +84,7 @@ class DirectionsService(private val context: Context, binaryMessenger: BinaryMes
                 mpDirectionsService.setTime(date)
                 result.success("success")
             }
+            else -> result.notImplemented()
         }
     }
 }

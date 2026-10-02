@@ -45,6 +45,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
             when (call.method) {
                 "FSE_onFloorChanged" -> {
                     floorSelectorInterface.listener?.onFloorSelectionChanged(gson.fromJson(call.argument<String>("floor"), MPFloor::class.java))
+                    result.success(null)
                 }
                 else -> result.notImplemented()
             }
@@ -281,7 +282,7 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                 }
                 val maxZoom = arg<Double>("maxZoom")
                 if (maxZoom != null) {
-                    mapControl?.goTo(entity, maxZoom)
+                    mapControl?.goTo(entity, MPCameraBehavior.Builder().setMaxZoom(maxZoom).build())
                 } else {
                     mapControl?.goTo(entity)
                 }
@@ -656,6 +657,11 @@ class MapView(context: Context, binaryMessenger: BinaryMessenger, val args: Hash
                     markerInfoWindowClickListener = null
                 }
             }
+            else -> {
+                result.notImplemented()
+                return
+            }
         }
+        result.success(null)
     }
 }

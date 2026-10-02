@@ -3,10 +3,10 @@ package com.mapspeople.mapsindoors.core
 import android.app.Application
 import androidx.lifecycle.Lifecycle
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.mapsindoors.core.*
 import com.mapspeople.mapsindoors.core.models.*
 import com.mapspeople.mapsindoors.*
-import com.mapsindoors.core.Logger
 import com.mapsindoors.core.MPVenueStatus
 import com.mapsindoors.core.MPVenueStatus.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -32,6 +32,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
     private lateinit var mDisplayRuleHandler: DisplayRuleHandler
     private var positionProvider: PositionProvider? = null
     private lateinit var mDirectionsService: DirectionsService
+    private lateinit var mDataSetCacheHandler: DataSetCacheHandler
     private val gson = Gson()
     private var view: MapView? = null
     private var lifecycle: Lifecycle? = null
@@ -48,6 +49,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
 
         mDisplayRuleHandler = DisplayRuleHandler(flutterPluginBinding.binaryMessenger) { view }
         mDirectionsService = DirectionsService(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger)
+        mDataSetCacheHandler = DataSetCacheHandler(flutterPluginBinding.binaryMessenger) { view }
 
         flutterPluginBinding.platformViewRegistry.registerViewFactory(
             "<map-view>",
@@ -61,27 +63,16 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             }
         )
 
-        mapsIndoorsChannel.invokeMethod("getFlutterVersion", null, object: MethodChannel.Result {
-            override fun success(version: Any?) {
-                if (version != null && version is String) {
-                    Logger.setCustomComponent("Flutter/android SDK", version)
-                } else {
-                    Logger.setCustomComponent("Flutter/android SDK", "unknown")
-                    MPDebugLog.LogW("Flutter", "Could not get Flutter version: version is null or not a string")
-                }
-            }
-
-            override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
-                MPDebugLog.LogW("Flutter", "Could not get Flutter version: $errorMessage")
-            }
-
-            override fun notImplemented() {
-                MPDebugLog.LogW("Flutter", "Could not get Flutter version: not implemented")
-            }
-
-        })  
-
         context = flutterPluginBinding.applicationContext as Application
+    }
+
+    /**
+     * Names this plugin as the component behind the MapsIndoors Insights session, so Flutter apps are told apart from native ones in the rollups.
+     *
+     * The SDK snapshots the component into the session when the session starts, inside `MapsIndoors.load`, so this has to run on the same call, right before it. The version is a compile-time constant sent from Dart, which `bump_versions.sh` rewrites alongside the pubspecs.
+     */
+    private fun setFlutterComponent(pluginVersion: String?) {
+        MPLogger.setCustomComponent("Flutter/android SDK", pluginVersion ?: "unknown")
     }
 
     private fun handleLocationChannel(call: MethodCall, result: Result) { 
@@ -125,6 +116,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                     error()
                     return
                 }
+                setFlutterComponent(arg<String>("pluginVersion"))
                 MapsIndoors.load(context, key) { error ->
                     view?.initialize()
                     success(if (error == null) null else gson.toJson(MPError.fromMIError(error)))
@@ -137,6 +129,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                     error()
                     return
                 }
+                setFlutterComponent(arg<String>("pluginVersion"))
                 MapsIndoors.load(context, key, venues) { error ->
                     view?.initialize()
                     success(if (error == null) null else gson.toJson(MPError.fromMIError(error)))
@@ -157,6 +150,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                 success(MapsIndoors.checkOfflineDataAvailability())
             }
             "destroy" -> {
+                mDataSetCacheHandler.terminate()
                 MapsIndoors.destroy()
                 success()
             }
@@ -314,6 +308,10 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
 
         fun <T> arg(name: String) : T? = call.argument<T>(name)
 
+        // MPGeometry is abstract, so Gson cannot instantiate it. Read the GeoJSON type
+        // discriminator instead, so the caller can deserialize the matching concrete class.
+        fun geoJsonType(json: String?) : String? = gson.fromJson(json, JsonObject::class.java)?.get("type")?.asString
+
         val method = call.method.drop(4)
 
         when (method) {
@@ -347,20 +345,25 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             "geometryIsInside" -> {
                 try {
                     val point = gson.fromJson(arg<String>("point"), MPPoint::class.java)
-                    val geo = gson.fromJson(arg<String>("it"), MPGeometry::class.java)
-                    when (geo.type) {
-                        "MPPoint" -> {
-                            val it = gson.fromJson(arg<String>("it"), MPPoint::class.java)
+                    val geoJson = arg<String>("it")
+                    when (val type = geoJsonType(geoJson)) {
+                        MPGeometry.POINT -> {
+                            val it = gson.fromJson(geoJson, MPPoint::class.java)
                             success(it.isInside(point.latLng))
                         }
-                        "MPPolygon" -> {
-                            val it = gson.fromJson(arg<String>("it"), MPPolygonGeometry::class.java)
+                        MPGeometry.POLYGON -> {
+                            val it = gson.fromJson(geoJson, MPPolygonGeometry::class.java)
                             success(it.isInside(point.latLng))
                         }
-                        "MPMultiPolygon" -> {
-                            val it = gson.fromJson(arg<String>("it"), MPMultiPolygonGeometry::class.java)
+                        MPGeometry.MULTIPOLYGON -> {
+                            val it = gson.fromJson(geoJson, MPMultiPolygonGeometry::class.java)
                             success(it.isInside(point.latLng))
                         }
+                        else -> error(
+                            "-1",
+                            "Unsupported geometry type: $type",
+                            "geometryIsInside expects a Point, Polygon or MultiPolygon"
+                        )
                     }
                 } catch (e: java.lang.Exception) {
                     error("404", e.message, "Could not complete \"geometryIsInside\" method")
@@ -368,22 +371,22 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             }
             "geometryArea" -> {
                 try {
-                    val geometry = arg<String>("geometry")
-                    val gson = Gson()
-                    val geo = gson.fromJson(geometry, MPGeometry::class.java)
-                    when (geo.type) {
-                        "MPPoint" -> {
-                            val it = gson.fromJson(geometry, MPPoint::class.java)
+                    // Dart answers MPPoint.area itself, so only the areal types reach this channel.
+                    val geoJson = arg<String>("geometry")
+                    when (val type = geoJsonType(geoJson)) {
+                        MPGeometry.POLYGON -> {
+                            val it = gson.fromJson(geoJson, MPPolygonGeometry::class.java)
                             success(it.area)
                         }
-                        "MPPolygon" -> {
-                            val it = gson.fromJson(geometry, MPPolygonGeometry::class.java)
+                        MPGeometry.MULTIPOLYGON -> {
+                            val it = gson.fromJson(geoJson, MPMultiPolygonGeometry::class.java)
                             success(it.area)
                         }
-                        "MPMultiPolygon" -> {
-                            val it = gson.fromJson(geometry, MPMultiPolygonGeometry::class.java)
-                            success(it.area)
-                        }
+                        else -> error(
+                            "-1",
+                            "Unsupported geometry type: $type",
+                            "geometryArea expects a Polygon or MultiPolygon"
+                        )
                     }
                 } catch (e: java.lang.Exception) {
                     error("404", e.message, "Could not complete \"geometryArea\" method")
@@ -392,16 +395,21 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             "polygonDistToClosestEdge" -> {
                 try {
                     val point = gson.fromJson(arg<String>("point"), MPPoint::class.java)
-                    val geo = gson.fromJson(arg<String>("it"), MPGeometry::class.java)
-                    when (geo.type) {
-                        "MPPolygon" -> {
-                            val it = gson.fromJson(arg<String>("it"), MPPolygonGeometry::class.java)
+                    val geoJson = arg<String>("it")
+                    when (val type = geoJsonType(geoJson)) {
+                        MPGeometry.POLYGON -> {
+                            val it = gson.fromJson(geoJson, MPPolygonGeometry::class.java)
                             success(it.getSquaredDistanceToClosestEdge(point))
                         }
-                        "MPMultiPolygon" -> {
-                            val it = gson.fromJson(arg<String>("it"), MPMultiPolygonGeometry::class.java)
+                        MPGeometry.MULTIPOLYGON -> {
+                            val it = gson.fromJson(geoJson, MPMultiPolygonGeometry::class.java)
                             success(it.getSquaredDistanceToClosestEdge(point))
                         }
+                        else -> error(
+                            "-1",
+                            "Unsupported geometry type: $type",
+                            "polygonDistToClosestEdge expects a Polygon or MultiPolygon"
+                        )
                     }
                 } catch (e: java.lang.Exception) {
                     error("404", e.message, "Could not complete \"polygonDistToClosestEdge\" method")
@@ -419,12 +427,12 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             }
             "setCollisionHandling" -> {
                 val collisionHandling = MPCollisionHandling.fromValue(arg<Int>("handling")!!)
-                getSolutionConfig()?.setCollisionHandling(collisionHandling)
+                getSolutionConfig()?.collisionHandling = collisionHandling
                 success()
             }
             "setEnableClustering" -> {
                 val enable = arg<Boolean>("enable") ?: false
-                getSolutionConfig()?.setEnableClustering(enable)
+                getSolutionConfig()?.enableClustering = enable
                 success()
             }
             "setExtrusionOpacity" -> {
@@ -458,7 +466,7 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
             }
             "setAutomatedZoomLimit" -> {
                 val limit = arg<Number>("limit")?.toDouble()
-                getSolutionConfig()?.setAutomatedZoomLimit(limit)
+                getSolutionConfig()?.automatedZoomLimit = limit
                 success()
             }
             else -> {
@@ -500,14 +508,19 @@ open class MapsindoorsPlugin : FlutterPlugin, ActivityAware {
                     MapsIndoors.removeOnVenueStatusChangedListener(venueStatusListener!!)
                 }
             }
-            else -> result.notImplemented()
+            else -> {
+                result.notImplemented()
+                return
+            }
         }
+        result.success(null)
     }
 
 
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         mapsIndoorsChannel.setMethodCallHandler(null)
+        mDataSetCacheHandler.dispose()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
